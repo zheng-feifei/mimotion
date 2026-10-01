@@ -10,15 +10,23 @@ jobs:
   repo-sync:
     runs-on: ubuntu-latest
     timeout-minutes: 3
-    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
+    # 只在 run.yml 被 schedule 触发且执行成功时才修改 cron
+    # 手动触发 run.yml 时不动 cron，避免覆盖 schedule 调度窗口
+    # cron.yml 自身被手动触发（workflow_dispatch）时也运行，用于修复
+    if: (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'schedule') || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v3
         with:
           token: ${{ secrets.PAT }} #此处PAT需要申请，教程详见：README
+      - name: 打印触发来源
+        run: |
+          echo "cron.yml 触发事件: ${{ github.event_name }}"
+          echo "上游 run.yml 触发方式: ${{ github.event.workflow_run.event }}"
+          echo "上游 run.yml 状态: ${{ github.event.workflow_run.conclusion }}"
+          echo "CRON_HOURS 仓库变量值: ${{ vars.CRON_HOURS }}"
       - name: random cron
         run: |
           source cron_convert.sh
-          echo "configed CRON_HOURS ${{ vars.CRON_HOURS }}"
           persist_execute_log ${{ github.event_name }} ${{ vars.CRON_HOURS }}
           git config user.name github-actions
           git config user.email github-actions@users.noreply.github.com
