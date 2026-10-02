@@ -249,6 +249,7 @@ def execute():
         summary = f"\n执行账号总数{total}，成功：{success_count}，失败：{total - success_count}"
         print(summary)
         push_util.push_results(push_results, summary, push_config)
+        return success_count
     else:
         print(f"账号数长度[{len(user_list)}]和密码数长度[{len(passwd_list)}]不匹配，跳过执行")
         exit(1)
@@ -361,9 +362,13 @@ if __name__ == "__main__":
             exit(0)
     # endregion
 
-    execute()
+    success_count = execute()
 
-    # 执行完成后写入今天日期，供备份 cron 判断是否已执行
-    with open(LAST_RUN_FILE, "w", encoding="utf-8") as f:
-        f.write(today_bj)
-    print(f"已写入执行标记: {today_bj}")
+    # 只有当至少有一个账号成功时才写入今天日期
+    # 如果全部失败（如网络问题），不写标记，让备份 cron 有机会重试
+    if success_count > 0:
+        with open(LAST_RUN_FILE, "w", encoding="utf-8") as f:
+            f.write(today_bj)
+        print(f"已写入执行标记: {today_bj}")
+    else:
+        print(f"所有账号执行失败，不写入标记，备份 cron 将重试")
