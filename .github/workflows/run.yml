@@ -2,8 +2,10 @@ name: 刷步数
 
 on:
   schedule:
-    - cron: '11 3 * * *'
-    - cron: '33 3 * * *'
+    - cron: '11 3 * * *'    # 北京 11:11
+    - cron: '17 5 * * *'    # 北京 13:17
+    - cron: '29 7 * * *'    # 北京 15:29
+    - cron: '43 9 * * *'    # 北京 17:43
   workflow_dispatch:
 
 jobs:
