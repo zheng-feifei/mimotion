@@ -349,4 +349,21 @@ if __name__ == "__main__":
         print(f"多账号执行间隔：{sleep_seconds}")
         use_concurrent = False
     # endregion
+
+    # region 幂等判断：避免同一天重复执行（用于双 cron 备份触发场景）
+    LAST_RUN_FILE = "last_run_date.txt"
+    today_bj = get_beijing_time().strftime("%Y-%m-%d")
+    if os.path.exists(LAST_RUN_FILE):
+        with open(LAST_RUN_FILE, "r", encoding="utf-8") as f:
+            last_run_date = f.read().strip()
+        if last_run_date == today_bj:
+            print(f"今天({today_bj})已经执行过，跳过本次执行（双 cron 备份机制）")
+            exit(0)
+    # endregion
+
     execute()
+
+    # 执行完成后写入今天日期，供备份 cron 判断是否已执行
+    with open(LAST_RUN_FILE, "w", encoding="utf-8") as f:
+        f.write(today_bj)
+    print(f"已写入执行标记: {today_bj}")
