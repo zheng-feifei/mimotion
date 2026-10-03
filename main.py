@@ -324,10 +324,10 @@ if __name__ == "__main__":
         exit(1)
 
     # region 初始化参数
-    # 创建推送配置对象
+    # 创建推送配置对象（环境变量优先于 CONFIG，方便单独配置推送 token）
     push_config = push_util.PushConfig(
-        push_plus_token=config.get('PUSH_PLUS_TOKEN'),
-        push_plus_hour=config.get('PUSH_PLUS_HOUR'),
+        push_plus_token=os.environ.get("PUSH_PLUS_TOKEN") or config.get('PUSH_PLUS_TOKEN'),
+        push_plus_hour=os.environ.get("PUSH_PLUS_HOUR") or config.get('PUSH_PLUS_HOUR'),
         push_plus_max=get_int_value_default(config, 'PUSH_PLUS_MAX', 30),
         push_wechat_webhook_key=config.get('PUSH_WECHAT_WEBHOOK_KEY'),
         telegram_bot_token=config.get('TELEGRAM_BOT_TOKEN'),
