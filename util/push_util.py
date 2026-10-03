@@ -48,7 +48,7 @@ def push_plus(token, title, content):
         "title": title,
         "content": content,
         "template": "txt",
-        "channel": "clawbot"
+        "channel": "cmcc"
     }
     try:
         response = requests.post(requestUrl, data=data)
