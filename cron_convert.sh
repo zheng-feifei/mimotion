@@ -95,8 +95,9 @@ function persist_execute_log {
     sed_prefix=(sed -i '')
   fi
   current_cron=$(< .github/workflows/run.yml grep cron|awk '{print substr($0, index($0,$3))}')
-  # 只随机化分钟，保留原有的 hour（支持多时段分散触发）
-  "${sed_prefix[@]}" -E "s/(- cron: ')[0-9]+( [^[:space:]]+)( \* \* \*')/\1$((RANDOM % 60))\2\3/g" .github/workflows/run.yml
+  # 只随机化分钟，保留原有的 hour；每行独立生成随机数，避免 8 个时段被改成同一分钟
+  # 注意：不能用 sed 替换里嵌 $RANDOM，shell 只展开一次会得到同一值
+  awk 'BEGIN{srand()} /^ *- cron: /{sub(/[0-9]+/, int(rand()*60))} {print}' .github/workflows/run.yml > .github/workflows/run.yml.tmp && mv .github/workflows/run.yml.tmp .github/workflows/run.yml
   current_cron=$(< .github/workflows/run.yml grep cron|awk '{print substr($0, index($0,$3))}')
   {
     echo "next cron:"
